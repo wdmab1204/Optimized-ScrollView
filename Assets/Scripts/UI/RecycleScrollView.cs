@@ -15,6 +15,7 @@ namespace GameEngine.UI
         private void Start()
         {
             Initialize();
+            Context.OnClickCell += OnClickClaimButton;
             UpdateContent(GetList());
         }
 
@@ -27,6 +28,11 @@ namespace GameEngine.UI
             }
 
             return list;
+        }
+
+        private void OnClickClaimButton(string msg)
+        {
+            Debug.Log($"[RecycleScrollView] : {msg}");
         }
     }
 }

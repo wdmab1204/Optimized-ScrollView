@@ -7,23 +7,25 @@ using UnityEngine.UI;
 
 namespace GameEngine.UI
 {
-    public abstract class RecycleScrollViewBase<T> : MonoBehaviour
+    public abstract class RecycleScrollViewBase<TItem, TContext> : MonoBehaviour, IScrollView<TItem>
+        where TContext : Context, new()
     {
         private ScrollRect scrollRect;
-        private IList<RecycleScrollCellBase<T>> poolList = new List<RecycleScrollCellBase<T>>();
-        private IList<T> dataList;
+        private LinkedList<RecycleScrollCellBase<TItem>> poolDeque = new();
+        private IList<TItem> dataList;
         private Vector2 prevScrollDirection;
 
         protected abstract float CellSize { get; }
         protected abstract GameObject CellPrefab { get; }
+        protected virtual TContext Context { get; } = new();
 
-        protected virtual void Initialize()
+        public virtual void Initialize()
         {
             CellPrefab.gameObject.SetActive(false);
             scrollRect = GetComponent<ScrollRect>();
             scrollRect.onValueChanged.AddListener(OnScrollChanged);
         }
-        
+
         private void OnScrollChanged(Vector2 scrollDirection)
         {
             UpdateCells((scrollDirection.y < prevScrollDirection.y) ? 1 : -1);
@@ -35,10 +37,10 @@ namespace GameEngine.UI
             //위로 스크롤 할 때
             if (scrollDirection > 0)
             {
-                var firstCell = poolList[0];
-                var lastCell = poolList[poolList.Count - 1];
+                var firstCell = poolDeque.First.Value;
+                var lastCell = poolDeque.Last.Value;
 
-                if (firstCell.Bottom.y > -scrollRect.content.anchoredPosition.y && 
+                if (firstCell.Bottom.y > -scrollRect.content.anchoredPosition.y &&
                     lastCell.Index + 1 < dataList.Count)
                 {
                     firstCell.Top = lastCell.Bottom;
@@ -46,16 +48,16 @@ namespace GameEngine.UI
 
                     UpdateCell(firstCell, dataList[lastCell.Index + 1]);
 
-                    poolList.Insert(poolList.Count, firstCell);
-                    poolList.RemoveAt(0);
+                    poolDeque.AddLast(firstCell);
+                    poolDeque.RemoveFirst();
                 }
             }
             //아래로 스크롤  할 때
-            else if(scrollDirection < 0)
+            else if (scrollDirection < 0)
             {
-                var firstCell = poolList[0];
-                var lastCell = poolList[poolList.Count - 1];
-                
+                var firstCell = poolDeque.First.Value;
+                var lastCell = poolDeque.Last.Value;
+
                 if (lastCell.Top.y < -scrollRect.content.anchoredPosition.y - scrollRect.viewport.rect.height &&
                     firstCell.Index - 1 >= 0)
                 {
@@ -63,14 +65,14 @@ namespace GameEngine.UI
                     lastCell.Index = firstCell.Index - 1;
 
                     UpdateCell(lastCell, dataList[firstCell.Index - 1]);
-                    
-                    poolList.Insert(0, lastCell);
-                    poolList.RemoveAt(poolList.Count - 1);
+
+                    poolDeque.AddFirst(lastCell);
+                    poolDeque.RemoveLast();
                 }
             }
         }
 
-        protected void UpdateContent(IList<T> list)
+        public void UpdateContent(IList<TItem> list)
         {
             dataList = list;
             var scrollRectSizeDelta = scrollRect.GetComponent<RectTransform>().sizeDelta;
@@ -85,10 +87,12 @@ namespace GameEngine.UI
                 UpdateCell(cell, list[index]);
                 index += 1;
             }
-            
+
             UpdateContentSize(list.Count);
         }
-        
+
+        public void SetVisible(bool visible) => gameObject.SetActive(visible);
+
         private void UpdateContentSize(int dataCount)
         {
             float contentHeight = dataCount * CellSize;
@@ -96,27 +100,30 @@ namespace GameEngine.UI
             sizeDelta.y = contentHeight;
             scrollRect.content.sizeDelta = sizeDelta;
         }
-        
-        private RecycleScrollCellBase<T> CreateCell()
+
+        protected virtual RecycleScrollCellBase<TItem> CreateCell()
         {
             GameObject obj = Instantiate(CellPrefab);
 
-            if (obj.TryGetComponent<RecycleScrollCellBase<T>>(out var cell) == false)
+            if (obj.TryGetComponent<RecycleScrollCellBase<TItem>>(out var cell) == false)
             {
                 Debug.LogError("Cell Component could not found.");
                 return null;
             }
 
             cell.SetVisible(true);
+            cell.Context = this.Context;
             cell.MyTransform.SetParent(scrollRect.content.transform, false);
-            poolList.Add(cell);
+            poolDeque.AddLast(cell);
 
             return cell;
         }
-        
-        private void UpdateCell(RecycleScrollCellBase<T> cell, T data)
+
+        private void UpdateCell(RecycleScrollCellBase<TItem> cell, TItem data)
         {
             cell.UpdateContent(data);
         }
     }
+
+    public abstract class RecycleScrollViewBase<TItem> : RecycleScrollViewBase<TItem, Context> { }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace GameEngine.UI
 {
-    public abstract class AutoDisableScrollViewBase<T> : MonoBehaviour
+    public abstract class AutoDisableScrollViewBase<T> : MonoBehaviour, IScrollView<T>
     {
         private ScrollRect scrollRect;
         private List<AutoDisableCellBase<T>> cellList = new();
@@ -13,14 +13,14 @@ namespace GameEngine.UI
         [SerializeField] private GameObject cellPrefab;
         protected abstract float CellSize { get; }
 
-        protected void Initialize()
+        public void Initialize()
         {
             scrollRect = GetComponent<ScrollRect>();
             scrollRect.onValueChanged.AddListener(OnScrollChanged);
             cellPrefab.SetActive(false);
         }
 
-        protected void UpdateContent(IList<T> list)
+        public void UpdateContent(IList<T> list)
         {
             for (int index = 0; index < list.Count; index++)
             {
@@ -30,6 +30,8 @@ namespace GameEngine.UI
 
             UpdateContentSize(list.Count);
         }
+        
+        public void SetVisible(bool visible) => gameObject.SetActive(visible);
         
         private void UpdateContentSize(int dataCount)
         {

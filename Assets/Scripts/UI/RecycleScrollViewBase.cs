@@ -7,8 +7,7 @@ using UnityEngine.UI;
 
 namespace GameEngine.UI
 {
-    public abstract class RecycleScrollViewBase<TItem, TContext> : MonoBehaviour, IScrollView<TItem>
-        where TContext : Context, new()
+    public abstract class RecycleScrollViewBase<TItem> : CacheObject, IScrollView<TItem>
     {
         private ScrollRect scrollRect;
         private LinkedList<RecycleScrollCellBase<TItem>> poolDeque = new();
@@ -17,7 +16,7 @@ namespace GameEngine.UI
 
         protected abstract float CellSize { get; }
         protected abstract GameObject CellPrefab { get; }
-        protected virtual TContext Context { get; } = new();
+        protected virtual Context Context { get; } = new();
 
         public virtual void Initialize()
         {
@@ -124,6 +123,4 @@ namespace GameEngine.UI
             cell.UpdateContent(data);
         }
     }
-
-    public abstract class RecycleScrollViewBase<TItem> : RecycleScrollViewBase<TItem, Context> { }
 }

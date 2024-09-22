@@ -12,22 +12,10 @@ namespace GameEngine.UI
 
         protected override GameObject CellPrefab => cellPrefab;
 
-        private void Start()
+        public override void Initialize()
         {
-            Initialize();
-            Context.OnClickCell += OnClickClaimButton;
-            UpdateContent(GetList());
-        }
-
-        private List<QuestCellModel> GetList()
-        {
-            List<QuestCellModel> list = new();
-            for (int i = 1; i <= 200; i++)
-            {
-                list.Add(new() { title = $"TITLE_{i}", desc = $"DESC_{i}" });
-            }
-
-            return list;
+            base.Initialize();
+            Context.OnClickCell = OnClickClaimButton;
         }
 
         private void OnClickClaimButton(string msg)

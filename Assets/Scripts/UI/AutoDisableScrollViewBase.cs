@@ -5,15 +5,16 @@ using UnityEngine.UI;
 
 namespace GameEngine.UI
 {
-    public abstract class AutoDisableScrollViewBase<T> : MonoBehaviour, IScrollView<T>
+    public abstract class AutoDisableScrollViewBase<T> : CacheObject, IScrollView<T>
     {
         private ScrollRect scrollRect;
         private List<AutoDisableCellBase<T>> cellList = new();
 
         [SerializeField] private GameObject cellPrefab;
         protected abstract float CellSize { get; }
+        protected virtual Context Context { get; set; } = new();
 
-        public void Initialize()
+        public virtual void Initialize()
         {
             scrollRect = GetComponent<ScrollRect>();
             scrollRect.onValueChanged.AddListener(OnScrollChanged);
@@ -26,6 +27,8 @@ namespace GameEngine.UI
             {
                 var cell = CreateCell();
                 cell.Top = Vector2.down * index * CellSize;
+                cell.Index = index;
+                cell.UpdateContent(list[index]);
             }
 
             UpdateContentSize(list.Count);
@@ -41,7 +44,7 @@ namespace GameEngine.UI
             scrollRect.content.sizeDelta = sizeDelta;
         }
         
-        private AutoDisableCellBase<T> CreateCell()
+        protected virtual AutoDisableCellBase<T> CreateCell()
         {
             GameObject obj = Instantiate(cellPrefab);
 
@@ -52,6 +55,7 @@ namespace GameEngine.UI
             }
 
             cell.SetVisible(true);
+            cell.Context = this.Context;
             cell.MyTransform.SetParent(scrollRect.content.transform, false);
             cellList.Add(cell);
 

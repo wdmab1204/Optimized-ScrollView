@@ -5,27 +5,21 @@ using UnityEngine.UI;
 
 namespace GameEngine.UI
 {
-    public class AutoDisableScroll : AutoDisableScrollViewBase<QuestCellModel>
+    public class AutoDisableScrollView : AutoDisableScrollViewBase<QuestCellModel>
     {
         [SerializeField] private float cellSize;
 
         protected override float CellSize => cellSize;
-        
-        private void Awake()
+
+        public override void Initialize()
         {
-            Initialize();
-            UpdateContent(GetList());
+            base.Initialize();
+            Context.OnClickCell = OnClickClaimButton;
         }
-
-        private List<QuestCellModel> GetList()
+        
+        private void OnClickClaimButton(string msg)
         {
-            List<QuestCellModel> list = new();
-            for (int i = 1; i <= 200; i++)
-            {
-                list.Add(new() { title = $"TITLE_{i}", desc = $"DESC_{i}" });
-            }
-
-            return list;
+            Debug.Log($"[AutoDisableScrollView] : {msg}");
         }
     }
 }

@@ -10,7 +10,7 @@ namespace GameEngine.UI
         
         public int Index { get; set; }
         
-        public Context Context { get; set; }
+        public virtual Context Context { get; set; }
         
         public abstract void UpdateContent(T item);
         

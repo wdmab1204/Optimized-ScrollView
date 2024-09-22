@@ -1,37 +1,57 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using GameEngine;
+using GameEngine.UI;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ScrollViewPanel : MonoBehaviour
 {
-    public GameObject[] scrollViewArr;
+    //public GameObject[] scrollViewArr;
+    public GameObject scrollViewGroup;
+    public List<IScrollView<QuestCellModel>> scrollViewArr = new();
     private int index = 0;
     private float deltaTime;
     public TextMeshProUGUI text;
     public TextMeshProUGUI title;
-
+    
     private void Start()
     {
+        foreach(Transform transform in scrollViewGroup.transform)
+        {
+            scrollViewArr.Add(transform.GetComponent<IScrollView<QuestCellModel>>());
+        }
+        
+        List<QuestCellModel> list = new();
+        for (int i = 1; i <= 200; i++)
+            list.Add(new() { title = $"TITLE_{i}", desc = $"DESC_{i}" });
+
+        for (int i = 0; i < scrollViewArr.Count; i++)
+        {
+            scrollViewArr[i].Initialize();
+            scrollViewArr[i].UpdateContent(list);
+        }
+        
         OnClickLeft();
     }
 
     public void OnClickLeft()
     {
-        scrollViewArr[index].SetActive(false);
+        scrollViewArr[index].SetVisible(false);
         index = Mathf.Max(index - 1, 0);
-        scrollViewArr[index].SetActive(true);
-        title.text = scrollViewArr[index].name;
+        scrollViewArr[index].SetVisible(true);
+        title.text = scrollViewArr[index].GetType().Name;
     }
 
     public void OnClickRight()
     {
-        scrollViewArr[index].SetActive(false);
-        index = Mathf.Min(index + 1, scrollViewArr.Length - 1);
-        scrollViewArr[index].SetActive(true);
-        title.text = scrollViewArr[index].name;
+        scrollViewArr[index].SetVisible(false);
+        index = Mathf.Min(index + 1, scrollViewArr.Count - 1);
+        scrollViewArr[index].SetVisible(true);
+        title.text = scrollViewArr[index].GetType().Name;
     }
 
     private void Update()

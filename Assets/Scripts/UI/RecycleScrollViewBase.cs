@@ -38,10 +38,12 @@ namespace GameEngine.UI
             {
                 var firstCell = poolDeque.First.Value;
                 var lastCell = poolDeque.Last.Value;
-
+                
+                //맨위의 Cell이 Viewport바깥에 있는가?
                 if (firstCell.Bottom.y > -scrollRect.content.anchoredPosition.y &&
                     lastCell.Index + 1 < dataList.Count)
                 {
+                    //맨위의 Cell을 맨 아래로 이동
                     firstCell.Top = lastCell.Bottom;
                     firstCell.Index = lastCell.Index + 1;
 
@@ -56,10 +58,12 @@ namespace GameEngine.UI
             {
                 var firstCell = poolDeque.First.Value;
                 var lastCell = poolDeque.Last.Value;
-
+                
+                //맨 아래의 Cell이 Viewport바깥에 있는가?
                 if (lastCell.Top.y < -scrollRect.content.anchoredPosition.y - scrollRect.viewport.rect.height &&
                     firstCell.Index - 1 >= 0)
                 {
+                    //맨 아래의 Cell을 맨 위로 이동
                     lastCell.Bottom = firstCell.Top;
                     lastCell.Index = firstCell.Index - 1;
 
